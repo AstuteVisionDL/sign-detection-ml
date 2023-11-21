@@ -3,6 +3,17 @@ sign_detection_ml
 
 Project to store shared code and notebooks with experiment
 
+# How to setup
+
+1) Run clearml init
+```bash
+clearml-init
+```
+2) Get ClearML credentials. Open the ClearML Web UI in a browser. 
+On the [SETTINGS > WORKSPACE](https://app.clear.ml/settings/workspace-configuration) page, click Create new credentials.
+3) Enter the credentials in the terminal
+
+
 Project Organization
 ------------
 
@@ -27,9 +38,9 @@ Project Organization
     ├── sign_recognition   <- Source code for use in this project.
     │   ├── __init__.py    <- Makes src a Python module
     │   │
-    │   ├── data           <- Scripts to download or generate data
+    │   ├── data           <- Scripts to download, generate data, process it. Upload it to ClearML with new version
     │   │
-    │   ├── features       <- Scripts to turn raw data into features for modeling
+    │   ├── features       <- Scripts to turn raw data into features for modeling (Dataloaders, Datamodules, pytorch Dataset). Download data from ClearML
     │   │
     │   ├── models         <- Scripts to train models and define them
     │   │
