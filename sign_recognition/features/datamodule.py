@@ -33,7 +33,9 @@ class RTSDDataModule(pl.LightningDataModule):
 
     def prepare_data(self) -> None:
         # download data from ClearML
-        data_dir = Dataset.get(dataset_project="SignTrafficRecognitionDL", dataset_name="RTSD").get_local_copy()
+        data_dir = Dataset.get(
+            dataset_project="SignTrafficRecognitionDL", dataset_name="RTSD", alias="RTSD"
+        ).get_local_copy()
         self.data_dir = Path(data_dir) / "rtsd-dataset"
 
     def setup(self, stage: str):

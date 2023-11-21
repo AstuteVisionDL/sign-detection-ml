@@ -5,10 +5,10 @@ from sign_recognition.models.dummy.model import DummyObjectRecognitionModel
 
 
 class DummyModelModule(pl.LightningModule):
-    def __init__(self, number_of_classes: int = 155):
+    def __init__(self, number_of_classes: int = 155, hidden_dim=128, learning_rate=1e-3):
         super().__init__()
         self.model = DummyObjectRecognitionModel(number_of_classes)
-        # here we can define model, but it's dummy model, so we don't need it here
+        self.save_hyperparameters("hidden_dim", "learning_rate")
 
     def forward(self, images: torch.Tensor):
         """
@@ -20,14 +20,25 @@ class DummyModelModule(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         images, bboxes, labels = batch
         self(images)
-        loss = torch.tensor(0.0)
+        loss = torch.tensor(0.0, requires_grad=True)
         return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
         images, bboxes, labels = batch
         self(images)
         loss = torch.tensor(0.0)
+        self.log("val_loss", loss)
         return {"val_loss": loss}
 
+    def test_step(self, batch, batch_idx):
+        images, bboxes, labels = batch
+        self(images)
+        loss = torch.tensor(0.0)
+        self.log("test_loss", loss)
+        return {"test_loss": loss}
+
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.02)
+        # Check if there are any parameters in your model
+        print(list(self.parameters()))
+        print(list(self.named_parameters()))
+        return torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
