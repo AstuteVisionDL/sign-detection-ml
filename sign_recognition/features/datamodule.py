@@ -4,12 +4,12 @@ from pathlib import Path
 import albumentations
 import pytorch_lightning as pl
 import torch
-from albumentations.pytorch import ToTensorV2
-from torch.utils.data import DataLoader, random_split
 import tqdm
-from sign_recognition.features.dataset import DatasetRTSD, collate_rtsd_fn
+from albumentations.pytorch import ToTensorV2
 from clearml import Dataset
+from torch.utils.data import DataLoader, random_split
 
+from sign_recognition.features.dataset import DatasetRTSD, collate_rtsd_fn
 
 logger = logging.getLogger(__name__)
 
@@ -22,16 +22,18 @@ class RTSDDataModule(pl.LightningDataModule):
         self.rtsd_val = None
         self.rtsd_test = None
         self.batch_size = batch_size
-        self.transform = albumentations.Compose([
-            albumentations.Resize(width=dsize[0], height=dsize[1]),
-            # todo calculate mean and std for our dataset
-            albumentations.Normalize(),
-            ToTensorV2(),
-        ])
+        self.transform = albumentations.Compose(
+            [
+                albumentations.Resize(width=dsize[0], height=dsize[1]),
+                # todo calculate mean and std for our dataset
+                albumentations.Normalize(),
+                ToTensorV2(),
+            ]
+        )
 
     def prepare_data(self) -> None:
         # download data from ClearML
-        data_dir = Dataset.get(dataset_project='SignTrafficRecognitionDL', dataset_name='RTSD').get_local_copy()
+        data_dir = Dataset.get(dataset_project="SignTrafficRecognitionDL", dataset_name="RTSD").get_local_copy()
         self.data_dir = Path(data_dir) / "rtsd-dataset"
 
     def setup(self, stage: str):
@@ -40,9 +42,9 @@ class RTSDDataModule(pl.LightningDataModule):
             rtsd_full = DatasetRTSD(self.data_dir, train=True, transform=self.transform)
             train_size = int(len(rtsd_full) * 0.8)
             val_size = len(rtsd_full) - train_size
-            self.rtsd_train, self.rtsd_val = random_split(rtsd_full,
-                                                          [train_size, val_size],
-                                                          generator=torch.Generator().manual_seed(42))
+            self.rtsd_train, self.rtsd_val = random_split(
+                rtsd_full, [train_size, val_size], generator=torch.Generator().manual_seed(42)
+            )
         if stage == "test":
             self.rtsd_test = DatasetRTSD(self.data_dir, train=False, transform=self.transform)
         logger.info(f"Setup data module with stage {stage} finished")
@@ -61,7 +63,7 @@ class RTSDDataModule(pl.LightningDataModule):
         return len(self.rtsd_train.dataset.label2id)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     data_module = RTSDDataModule()
     data_module.prepare_data()
     data_module.setup("fit")

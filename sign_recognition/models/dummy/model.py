@@ -1,5 +1,5 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
 
 class DummyObjectRecognitionModel(nn.Module):
@@ -15,7 +15,7 @@ class DummyObjectRecognitionModel(nn.Module):
         batch_size = images.shape[0]
         batch_bboxes = []
         batch_labels = []
-        for i in range(batch_size):
+        for _i in range(batch_size):
             bboxes = torch.tensor([[0.1, 0.1, 0.2, 0.2], [0.3, 0.3, 0.4, 0.4]])
             labels = torch.tensor([1, 2])
             batch_bboxes.append(bboxes)

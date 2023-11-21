@@ -1,8 +1,7 @@
 import pytorch_lightning as pl
 import torch
-import torch.nn as nn
 
-from sign_recognition.models.dummy_model import DummyObjectRecognitionModel
+from sign_recognition.models.dummy.model import DummyObjectRecognitionModel
 
 
 class DummyModelModule(pl.LightningModule):
@@ -20,13 +19,13 @@ class DummyModelModule(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         images, bboxes, labels = batch
-        output = self(images)
+        self(images)
         loss = torch.tensor(0.0)
         return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
         images, bboxes, labels = batch
-        output = self(images)
+        self(images)
         loss = torch.tensor(0.0)
         return {"val_loss": loss}
 

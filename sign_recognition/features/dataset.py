@@ -6,8 +6,8 @@ import albumentations
 import clearml
 import numpy as np
 import torch
-from PIL import Image
 from albumentations.pytorch import ToTensorV2
+from PIL import Image
 from torch.utils.data.dataset import Dataset
 
 
@@ -22,9 +22,9 @@ def collate_rtsd_fn(batch):
     :return: a tensor of images, lists of varying-size tensors of bounding boxes and labels
     """
 
-    images = list()
-    boxes = list()
-    labels = list()
+    images = []
+    boxes = []
+    labels = []
 
     for sample in batch:
         images.append(sample[0])
@@ -38,14 +38,11 @@ def collate_rtsd_fn(batch):
 
 class DatasetRTSD(Dataset):
     def __init__(self, data_path: Path, train=True, transform=None) -> None:
-        super(DatasetRTSD, self).__init__()
+        super().__init__()
         with open(data_path / "label_map.json") as f:
             self.label2id = json.load(f)
             self.id2label = {v: k for k, v in self.label2id.items()}
-        if train:
-            annotation_path = data_path / "train_anno.json"
-        else:
-            annotation_path = data_path / "val_anno.json"
+        annotation_path = data_path / "train_anno.json" if train else data_path / "val_anno.json"
         with open(annotation_path) as f:
             self.annotations = json.load(f)
         self.frames_dir = data_path / "rtsd-frames"
@@ -55,11 +52,13 @@ class DatasetRTSD(Dataset):
             self.image_id2annotations[image_id].append(annotation)
         if transform is None:
             # assign default augmentations
-            self.transform = albumentations.Compose([
-                albumentations.Resize(width=640, height=640),
-                albumentations.Normalize(),
-                ToTensorV2(),
-            ])
+            self.transform = albumentations.Compose(
+                [
+                    albumentations.Resize(width=640, height=640),
+                    albumentations.Normalize(),
+                    ToTensorV2(),
+                ]
+            )
         else:
             self.transform = transform
 
@@ -101,8 +100,8 @@ class DatasetRTSD(Dataset):
         return len(self.annotations["images"])
 
 
-if __name__ == '__main__':
-    data_dir = clearml.Dataset.get(dataset_project='SignTrafficRecognitionDL', dataset_name='RTSD').get_local_copy()
+if __name__ == "__main__":
+    data_dir = clearml.Dataset.get(dataset_project="SignTrafficRecognitionDL", dataset_name="RTSD").get_local_copy()
     data_dir = Path(data_dir) / "rtsd-dataset"
     print(data_dir)
     dataset = DatasetRTSD(data_dir)

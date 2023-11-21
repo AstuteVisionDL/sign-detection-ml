@@ -1,1 +1,0 @@
-# todo here will be custom trainer class that will be used to train the model (if we need it)
