@@ -64,6 +64,12 @@ class DatasetRTSD(Dataset):
             self.transform = transform
 
     def __getitem__(self, idx):
+        """
+
+        :param idx: index of the image
+        :return: tuple of image, list of bounding boxes in xyxyn format,
+        list of labels indexes
+        """
         image_path = self.frames_dir / self.annotations["images"][idx]["file_name"]
         image_id = self.annotations["images"][idx]["id"]
         width = self.annotations["images"][idx]["width"]
@@ -89,7 +95,7 @@ class DatasetRTSD(Dataset):
             bboxes.append(bbox_xyxyn)
             labels.append(label)
 
-        return image, bboxes, labels
+        return image, torch.tensor(bboxes, dtype=torch.float32), torch.tensor(labels, dtype=torch.int32)
 
     def __len__(self):
         return len(self.annotations["images"])

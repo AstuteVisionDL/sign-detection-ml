@@ -56,10 +56,19 @@ class RTSDDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(self.rtsd_test, batch_size=self.batch_size, collate_fn=collate_rtsd_fn)
 
+    @property
+    def number_of_classes(self):
+        return len(self.rtsd_train.dataset.label2id)
+
 
 if __name__ == '__main__':
     data_module = RTSDDataModule()
     data_module.prepare_data()
     data_module.setup("fit")
+    print(data_module.number_of_classes)
+    counter = 0
     for batch in tqdm.tqdm(data_module.train_dataloader()):
+        counter += 1
         print(batch)
+        if counter > 10:
+            break
