@@ -27,7 +27,7 @@ if __name__ == "__main__":
     # ------------
     # training
     # ------------
-    trainer = pl.Trainer(max_epochs=max_epochs, limit_train_batches=0.01, limit_val_batches=0.01)
+    trainer = pl.Trainer(max_epochs=max_epochs, limit_train_batches=0.001, limit_val_batches=0.005, limit_test_batches=0.005)
     data_module.setup("fit")
     train_loader = data_module.train_dataloader()
     val_loader = data_module.val_dataloader()
@@ -38,4 +38,4 @@ if __name__ == "__main__":
     # ------------
     data_module.setup("test")
     test_loader = data_module.test_dataloader()
-    trainer.test(dataloaders=test_loader)
+    trainer.test(dataloaders=test_loader, ckpt_path='best')
