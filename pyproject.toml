@@ -10,6 +10,16 @@ packages = [{include = "sign_detection_ml"}]
 python = "^3.10"
 python-dotenv = "^1.0.0"
 pydantic-settings = "^2.1.0"
+opendatasets = "^0.1.22"
+clearml = "^1.13.2"
+torch = "^2.1.1"
+torchvision = "^0.16.1"
+pytorch-lightning = "^2.1.2"
+albumentations = "^1.3.1"
+tqdm = "^4.66.1"
+numpy = "^1.26.2"
+pillow = "^10.1.0"
+torchmetrics = {extras = ["detection"], version = "^1.2.0"}
 
 
 [tool.poetry.group.lint.dependencies]
