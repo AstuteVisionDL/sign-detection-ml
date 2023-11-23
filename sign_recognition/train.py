@@ -43,7 +43,11 @@ def test(data_module: pl.LightningDataModule, trainer: pl.Trainer) -> None:
 def save_model(config: DictConfig, model: pl.LightningModule, task_name: str) -> None:
     if config.save_onnx:
         dsize = config.dataset.module.dsize
-        model.to_onnx(f"{task_name}.onnx", input_sample=torch.rand(1, 3, dsize, dsize), export_params=True)
+        model.to_onnx(
+            f"{settings.MODELS_WEIGHTS_PATH}/{task_name}.onnx",
+            input_sample=torch.rand(1, 3, dsize, dsize),
+            export_params=True,
+        )
         Task.current_task().upload_artifact(f"{task_name}.onnx", artifact_object=f"{task_name}.onnx")
 
 
