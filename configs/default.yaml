@@ -1,0 +1,8 @@
+defaults:
+  - model: "fasterrcnn_mobilenet_v3_large_fpn"
+  - dataset: "rtsd"
+  - _self_
+
+seed: 42
+max_epochs: 1
+save_onnx: False

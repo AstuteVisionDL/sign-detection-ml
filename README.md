@@ -13,6 +13,13 @@ clearml-init
 On the [SETTINGS > WORKSPACE](https://app.clear.ml/settings/workspace-configuration) page, click Create new credentials.
 3) Enter the credentials in the terminal
 
+# How to run
+
+1) Run train.py script
+```bash
+python sign_recognition/train.py
+```
+*Note: You can change the config via command line arguments or by changing .yaml config in configs directory (https://hydra.cc/docs/tutorials/basic/your_first_app/simple_cli/)*
 
 Project Organization
 ------------
@@ -44,9 +51,9 @@ Project Organization
     │   │
     │   ├── models         <- Scripts to train models and define them
     │   │
-    │   ├── visualization  <- Scripts to create exploratory and results oriented visualizations for evaluation
+    │   ├── envs.py        <- Environment variables for project
     │   │
-    │   └── config.py      <- config file for project
+    │   └── train.py       <- Main script to train models
     │
     └── .pre-commit-config.yaml  <- pre-commit config file to run hooks on commit (run pre-commmit init to use)
 
