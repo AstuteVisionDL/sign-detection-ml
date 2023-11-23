@@ -4,7 +4,7 @@ from pathlib import Path
 from clearml import Dataset
 from opendatasets import download
 
-from sign_recognition.config import settings
+from sign_recognition.envs import settings
 
 logger = getLogger(__name__)
 
