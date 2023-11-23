@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class RTSDDataModule(pl.LightningDataModule):
-    def __init__(self, batch_size: int = 4, dsize=640):
+    def __init__(self, batch_size: int = 4, dsize: int = 640, data_dir: Path | None = None) -> None:
         super().__init__()
-        self.data_dir = None
+        self.data_dir = data_dir
         self.rtsd_train = None
         self.rtsd_val = None
         self.rtsd_test = None
@@ -31,13 +31,14 @@ class RTSDDataModule(pl.LightningDataModule):
         )
 
     def prepare_data(self) -> None:
-        # download data from ClearML
-        data_dir = Dataset.get(
-            dataset_project="SignTrafficRecognitionDL", dataset_name="RTSD", alias="RTSD"
-        ).get_local_copy()
-        self.data_dir = Path(data_dir) / "rtsd-dataset"
+        if self.data_dir is None:
+            # download data from ClearML
+            data_dir = Dataset.get(
+                dataset_project="SignTrafficRecognitionDL", dataset_name="RTSD", alias="RTSD"
+            ).get_local_copy()
+            self.data_dir = Path(data_dir) / "rtsd-dataset"
 
-    def setup(self, stage: str):
+    def setup(self, stage: str) -> None:
         logger.info(f"Setup data module with stage {stage}")
         if stage == "fit" or stage is None:
             rtsd_full = DatasetRTSD(self.data_dir, train=True, transform=self.transform)
@@ -50,17 +51,17 @@ class RTSDDataModule(pl.LightningDataModule):
             self.rtsd_test = DatasetRTSD(self.data_dir, train=False, transform=self.transform)
         logger.info(f"Setup data module with stage {stage} finished")
 
-    def train_dataloader(self):
+    def train_dataloader(self) -> DataLoader:
         return DataLoader(self.rtsd_train, batch_size=self.batch_size, collate_fn=collate_rtsd_fn)
 
-    def val_dataloader(self):
+    def val_dataloader(self) -> DataLoader:
         return DataLoader(self.rtsd_val, batch_size=self.batch_size, collate_fn=collate_rtsd_fn)
 
-    def test_dataloader(self):
+    def test_dataloader(self) -> DataLoader:
         return DataLoader(self.rtsd_test, batch_size=self.batch_size, collate_fn=collate_rtsd_fn)
 
     @property
-    def number_of_classes(self):
+    def number_of_classes(self) -> int:
         return len(self.rtsd_train.dataset.label2id)
 
 

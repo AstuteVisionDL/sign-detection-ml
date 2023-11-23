@@ -9,7 +9,7 @@ from sign_recognition.envs import settings
 logger = getLogger(__name__)
 
 
-def download_all_datasets(output_path: Path = settings.RAW_DATA_PATH):
+def download_all_datasets(output_path: Path = settings.RAW_DATA_PATH) -> None:
     # download raw data from Kaggle and upload it to ClearML
     # here are preprocessing scripts for raw data (merging datasets, etc)
     # for training you should use already processed data from ClearML

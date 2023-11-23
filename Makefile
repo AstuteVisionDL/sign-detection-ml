@@ -1,4 +1,4 @@
-.PHONY: clean data lint requirements sync_data_to_s3 sync_data_from_s3
+.PHONY: requirements clean lint
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -30,7 +30,7 @@ lint:
 	@echo "🚀 Linting code: Running pre-commit"
 	@pre-commit run -a
 	@echo "🚀 Linting code: Running mypy (type checking)"
-	@mypy app
+	@mypy sign_recognition
 
 
 #################################################################################

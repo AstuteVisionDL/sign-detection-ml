@@ -11,7 +11,7 @@ from PIL import Image
 from torch.utils.data.dataset import Dataset
 
 
-def collate_rtsd_fn(batch):
+def collate_rtsd_fn(batch: list[torch.Tensor]) -> tuple:
     """
     Since each image may have a different number of objects,
     we need a collate function (to be passed to the DataLoader).
@@ -21,23 +21,19 @@ def collate_rtsd_fn(batch):
     :param batch: an iterable of N sets from __getitem__()
     :return: a tensor of images, lists of varying-size tensors of bounding boxes and labels
     """
-
     images = []
     boxes = []
     labels = []
-
     for sample in batch:
         images.append(sample[0])
         boxes.append(sample[1])
         labels.append(sample[2])
-
-    images = torch.stack(images, dim=0)
-
-    return images, boxes, labels
+    images_tensor = torch.stack(images, dim=0)
+    return images_tensor, boxes, labels
 
 
 class DatasetRTSD(Dataset):
-    def __init__(self, data_path: Path, train=True, transform=None) -> None:
+    def __init__(self, data_path: Path, train: bool = True, transform: albumentations.Compose | None = None) -> None:
         super().__init__()
         with open(data_path / "label_map.json") as f:
             self.label2id = json.load(f)
@@ -62,7 +58,7 @@ class DatasetRTSD(Dataset):
         else:
             self.transform = transform
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple:
         """
 
         :param idx: index of the image
@@ -96,7 +92,7 @@ class DatasetRTSD(Dataset):
 
         return image, torch.tensor(bboxes, dtype=torch.float32), torch.tensor(labels, dtype=torch.int64)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.annotations["images"])
 
 
