@@ -1,15 +1,25 @@
+
 import clearml
 import pytorch_lightning as pl
 import torch
-from sign_recognition.models.dummy.model import DummyObjectRecognitionModel
+import torchvision
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+
 from torchmetrics import Accuracy, Precision, Recall, F1Score
 
 
-class DummyModelModule(pl.LightningModule):
-    def __init__(self, number_of_classes: int = 155, hidden_dim=128, learning_rate=1e-3):
+class FasterRCNNModule(pl.LightningModule):
+    def __init__(self, number_of_classes: int = 155, learning_rate=1e-3):
         super().__init__()
-        self.model = DummyObjectRecognitionModel(number_of_classes)
-        self.save_hyperparameters("hidden_dim", "learning_rate")
+        self.save_hyperparameters("learning_rate")
+        self.model = torchvision.models.detection.fasterrcnn_mobilenet_v3_large_320_fpn(
+            pretrained=True
+        )
+        # get the number of input features
+        in_features = self.model.roi_heads.box_predictor.cls_score.in_features
+        # define a new head for the detector with required number of classes
+        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, number_of_classes)
+
         self.val_acc = Accuracy(task="multiclass", num_classes=number_of_classes)
         self.val_precision = Precision(task="multiclass", num_classes=number_of_classes)
         self.val_recall = Recall(task="multiclass", num_classes=number_of_classes)
@@ -20,12 +30,12 @@ class DummyModelModule(pl.LightningModule):
         self.test_recall = Recall(task="multiclass", num_classes=number_of_classes)
         self.test_f1 = F1Score(task="multiclass", num_classes=number_of_classes)
 
-    def forward(self, images: torch.Tensor):
+    def forward(self, images: torch.Tensor, targets):
         """
         :param images: (batch_size, 3, 640, 640)
         :return: random constant bboxes (xyxyn) and classes
         """
-        return self.model(images)
+        return self.model(images, targets)
 
     def training_step(self, batch, batch_idx):
         # batch = (images, bboxes, labels)
@@ -33,13 +43,34 @@ class DummyModelModule(pl.LightningModule):
         # bboxes = (batch_size, number_of_bboxes, 4) in xyxyn format
         # labels = (batch_size, number_of_bboxes)
         images, bboxes, labels = batch
-        self(images)
-        loss = torch.tensor(0.0, requires_grad=True)
-        return {"loss": loss}
+        images = list(image for image in images)
+        targets = []
+        for i in range(len(images)):
+            d = {}
+            d['boxes'] = bboxes[i]
+            d['labels'] = labels[i]
+            targets.append(d)
+        loss_dict = self(images, targets)
+        losses = sum(loss for loss in loss_dict.values())
+        return {"loss": losses}
 
     def validation_step(self, batch, batch_idx):
         images, bboxes, labels = batch
-        pred_bboxes, pred_labels = self(images)
+        images = list(image for image in images)
+        targets = []
+        for i in range(len(images)):
+            d = {}
+            d['boxes'] = bboxes[i]
+            d['labels'] = labels[i]
+            targets.append(d)
+        predictions = self(images, targets)
+        pred_bboxes = []
+        pred_labels = []
+
+        for prediction in predictions:
+            pred_bboxes.append(prediction['boxes'])
+            pred_labels.append(prediction['labels'])
+
         pred_labels = torch.cat(pred_labels)
         labels = torch.cat(labels)
         if len(labels) != len(pred_labels):
@@ -74,7 +105,19 @@ class DummyModelModule(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         images, bboxes, labels = batch
-        pred_bboxes, pred_labels = self(images)
+        targets = []
+        for i in range(len(images)):
+            d = {}
+            d['boxes'] = bboxes[i]
+            d['labels'] = labels[i]
+            targets.append(d)
+        predictions = self(images, targets)
+        pred_bboxes = []
+        pred_labels = []
+
+        for prediction in predictions:
+            pred_bboxes.append(prediction['boxes'])
+            pred_labels.append(prediction['labels'])
         pred_labels = torch.cat(pred_labels)
         labels = torch.cat(labels)
         if len(labels) != len(pred_labels):

@@ -2,7 +2,7 @@ import pytorch_lightning as pl
 from clearml import Task
 
 from sign_recognition.features.datamodule import RTSDDataModule
-from sign_recognition.models.dummy.module import DummyModelModule
+from sign_recognition.models.faster_rcnn.module import FasterRCNNModule
 
 if __name__ == "__main__":
     pl.seed_everything(42)
@@ -11,7 +11,7 @@ if __name__ == "__main__":
     batch_size = 4
     max_epochs = 3
 
-    Task.init(project_name="SignTrafficRecognitionDL", task_name="DummyModelModule")
+    Task.init(project_name="SignTrafficRecognitionDL", task_name="fasterrcnn_mobilenet_v3_large_fpn")
 
     # ------------
     # data
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # ------------
     # model
     # ------------
-    model = DummyModelModule()
+    model = FasterRCNNModule()
 
     # ------------
     # training

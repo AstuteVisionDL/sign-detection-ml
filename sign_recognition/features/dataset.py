@@ -94,7 +94,7 @@ class DatasetRTSD(Dataset):
             bboxes.append(bbox_xyxyn)
             labels.append(label)
 
-        return image, torch.tensor(bboxes, dtype=torch.float32), torch.tensor(labels, dtype=torch.int32)
+        return image, torch.tensor(bboxes, dtype=torch.float32), torch.tensor(labels, dtype=torch.int64)
 
     def __len__(self):
         return len(self.annotations["images"])
