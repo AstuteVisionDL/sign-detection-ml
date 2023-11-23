@@ -10,6 +10,7 @@ class FasterRCNNModule(pl.LightningModule):
     def __init__(self, number_of_classes: int = 155, learning_rate=1e-3):
         super().__init__()
         self.save_hyperparameters("number_of_classes", "learning_rate")
+        print(self.hparams)
         self.model = build_model(number_of_classes)
 
         self.val_metrics_dict = build_metrics_dict("val", number_of_classes)

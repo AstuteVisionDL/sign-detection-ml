@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class RTSDDataModule(pl.LightningDataModule):
-    def __init__(self, batch_size: int = 4, dsize=(640, 640)):
+    def __init__(self, batch_size: int = 4, dsize=640):
         super().__init__()
         self.data_dir = None
         self.rtsd_train = None
@@ -24,8 +24,7 @@ class RTSDDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.transform = albumentations.Compose(
             [
-                albumentations.Resize(width=dsize[0], height=dsize[1]),
-                # todo calculate mean and std for our dataset
+                albumentations.Resize(width=dsize, height=dsize),
                 albumentations.Normalize(),
                 ToTensorV2(),
             ]

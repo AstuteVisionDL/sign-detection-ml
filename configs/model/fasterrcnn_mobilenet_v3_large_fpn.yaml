@@ -1,0 +1,6 @@
+module:
+  _target_: sign_recognition.models.faster_rcnn.module.FasterRCNNModule
+  number_of_classes: 155
+  learning_rate: 1e-3
+
+name: faster_rcnn_mobilenet_v3_large_fpn
