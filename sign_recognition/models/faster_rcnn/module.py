@@ -1,3 +1,4 @@
+from typing import Literal
 
 import clearml
 import pytorch_lightning as pl
@@ -8,32 +9,63 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchmetrics import Accuracy, Precision, Recall, F1Score
 
 
+def build_metrics_dict(
+    stage: Literal["train", "val", "test"],
+    num_classes: int
+):
+    task: Literal["binary", "multiclass", "multilabel"] = "multilabel"
+    metrics_dict = {f"{stage}_acc": Accuracy(task=task, num_labels=num_classes),
+                    f"{stage}_precision": Precision(task=task, num_labels=num_classes),
+                    f"{stage}_recall": Recall(task=task, num_labels=num_classes),
+                    f"{stage}_f1": F1Score(task=task, num_labels=num_classes),
+                    f"{stage}_precision_weighted": Precision(task=task, num_labels=num_classes, average="weighted"),
+                    f"{stage}_recall_weighted": Recall(task=task, num_labels=num_classes, average="weighted"),
+                    f"{stage}_f1_weighted": F1Score(task=task, num_labels=num_classes, average="weighted")}
+    return metrics_dict
+
+
+def convert_to_torchmetrics_format(labels, predictions, number_of_classes):
+    pred_labels = []
+    for prediction in predictions:
+        pred_labels.append(prediction['labels'])
+    # convert to format required by torchmetrics (one hot encoded)
+    # we don't take into account the possible repeated labels in the same image because main goal is to notify the
+    # driver of the presence of a sign, not to count or detect them
+    for i in range(len(pred_labels)):
+        pred_labels[i] = torch.nn.functional.one_hot(pred_labels[i], num_classes=number_of_classes).sum(dim=0)
+        labels[i] = torch.nn.functional.one_hot(labels[i], num_classes=number_of_classes).sum(dim=0)
+        pred_labels[i][pred_labels[i] > 1] = 1
+        labels[i][labels[i] > 1] = 1
+    pred_labels = torch.stack(pred_labels)
+    labels = torch.stack(labels)
+    return labels, pred_labels
+
+
+def build_model(number_of_classes):
+    model = torchvision.models.detection.fasterrcnn_mobilenet_v3_large_320_fpn(
+        pretrained=True
+    )
+    # get the number of input features
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    # define a new head for the detector with required number of classes
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, number_of_classes)
+    return model
+
+
 class FasterRCNNModule(pl.LightningModule):
     def __init__(self, number_of_classes: int = 155, learning_rate=1e-3):
         super().__init__()
-        self.save_hyperparameters("learning_rate")
-        self.model = torchvision.models.detection.fasterrcnn_mobilenet_v3_large_320_fpn(
-            pretrained=True
-        )
-        # get the number of input features
-        in_features = self.model.roi_heads.box_predictor.cls_score.in_features
-        # define a new head for the detector with required number of classes
-        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, number_of_classes)
+        self.save_hyperparameters("number_of_classes", "learning_rate")
+        self.model = build_model(number_of_classes)
 
-        self.val_acc = Accuracy(task="multiclass", num_classes=number_of_classes)
-        self.val_precision = Precision(task="multiclass", num_classes=number_of_classes)
-        self.val_recall = Recall(task="multiclass", num_classes=number_of_classes)
-        self.val_f1 = F1Score(task="multiclass", num_classes=number_of_classes)
+        self.val_metrics_dict = build_metrics_dict("val", number_of_classes)
+        self.test_metrics_dict = build_metrics_dict("test", number_of_classes)
 
-        self.test_acc = Accuracy(task="multiclass", num_classes=number_of_classes)
-        self.test_precision = Precision(task="multiclass", num_classes=number_of_classes)
-        self.test_recall = Recall(task="multiclass", num_classes=number_of_classes)
-        self.test_f1 = F1Score(task="multiclass", num_classes=number_of_classes)
-
-    def forward(self, images: torch.Tensor, targets):
+    def forward(self, images: torch.Tensor, targets: list[dict[str, torch.Tensor]]):
         """
+        :param targets: list of dicts with keys 'boxes' and 'labels'
         :param images: (batch_size, 3, 640, 640)
-        :return: random constant bboxes (xyxyn) and classes
+        :return: dict with keys 'boxes' and 'labels' or loss dict if targets are provided
         """
         return self.model(images, targets)
 
@@ -44,114 +76,41 @@ class FasterRCNNModule(pl.LightningModule):
         # labels = (batch_size, number_of_bboxes)
         images, bboxes, labels = batch
         images = list(image for image in images)
-        targets = []
-        for i in range(len(images)):
-            d = {}
-            d['boxes'] = bboxes[i]
-            d['labels'] = labels[i]
-            targets.append(d)
+        targets = [{"boxes": bboxes[i], "labels": labels[i]} for i in range(len(images))]
+
         loss_dict = self(images, targets)
         losses = sum(loss for loss in loss_dict.values())
+        self.log("train_loss", losses)
+        clearml.Logger.current_logger().report_scalar("train_loss", "train_loss", losses, self.global_step)
         return {"loss": losses}
 
     def validation_step(self, batch, batch_idx):
         images, bboxes, labels = batch
         images = list(image for image in images)
-        targets = []
-        for i in range(len(images)):
-            d = {}
-            d['boxes'] = bboxes[i]
-            d['labels'] = labels[i]
-            targets.append(d)
+        targets = [{"boxes": bboxes[i], "labels": labels[i]} for i in range(len(images))]
         predictions = self(images, targets)
-        pred_bboxes = []
-        pred_labels = []
-
-        for prediction in predictions:
-            pred_bboxes.append(prediction['boxes'])
-            pred_labels.append(prediction['labels'])
-
-        pred_labels = torch.cat(pred_labels)
-        labels = torch.cat(labels)
-        if len(labels) != len(pred_labels):
-            # pad with -1
-            pred_labels = torch.cat([pred_labels, torch.tensor([-1] * (len(labels) - len(pred_labels)))])
-            labels = torch.cat([labels, torch.tensor([-1] * (len(pred_labels) - len(labels)))])
-        self.val_acc.update(pred_labels, labels)
-        self.val_precision.update(pred_labels, labels)
-        self.val_recall.update(pred_labels, labels)
-        self.val_f1.update(pred_labels, labels)
+        labels, pred_labels = convert_to_torchmetrics_format(labels, predictions, self.hparams.number_of_classes)
+        for metric in self.val_metrics_dict.values():
+            metric.update(pred_labels, labels)
 
     def on_validation_epoch_end(self):
-        val_acc = self.val_acc.compute()
-        self.log("val_acc", val_acc)
-        clearml.Logger.current_logger().report_scalar("val_acc", "val_acc", val_acc, self.current_epoch)
-        self.val_acc.reset()
-
-        val_precision = self.val_precision.compute()
-        self.log("val_precision", val_precision)
-        clearml.Logger.current_logger().report_scalar("val_precision", "val_precision", val_precision, self.current_epoch)
-        self.val_precision.reset()
-
-        val_recall = self.val_recall.compute()
-        self.log("val_recall", val_recall)
-        clearml.Logger.current_logger().report_scalar("val_recall", "val_recall", val_recall, self.current_epoch)
-        self.val_recall.reset()
-
-        val_f1 = self.val_f1.compute()
-        self.log("val_f1", val_f1)
-        clearml.Logger.current_logger().report_scalar("val_f1", "val_f1", val_f1, self.current_epoch)
-        self.val_f1.reset()
+        for metric_name, metric in self.val_metrics_dict.items():
+            self.log(metric_name, metric.compute())
+            clearml.Logger.current_logger().report_scalar(metric_name, metric_name, metric.compute(), self.current_epoch)
+            metric.reset()
 
     def test_step(self, batch, batch_idx):
         images, bboxes, labels = batch
-        targets = []
-        for i in range(len(images)):
-            d = {}
-            d['boxes'] = bboxes[i]
-            d['labels'] = labels[i]
-            targets.append(d)
+        targets = [{"boxes": bboxes[i], "labels": labels[i]} for i in range(len(images))]
         predictions = self(images, targets)
-        pred_bboxes = []
-        pred_labels = []
-
-        for prediction in predictions:
-            pred_bboxes.append(prediction['boxes'])
-            pred_labels.append(prediction['labels'])
-        pred_labels = torch.cat(pred_labels)
-        labels = torch.cat(labels)
-        if len(labels) != len(pred_labels):
-            # pad with -1
-            pred_labels = torch.cat([pred_labels, torch.tensor([-1] * (len(labels) - len(pred_labels)))])
-            labels = torch.cat([labels, torch.tensor([-1] * (len(pred_labels) - len(labels)))])
-        self.test_acc.update(pred_labels, labels)
-        self.test_precision.update(pred_labels, labels)
-        self.test_recall.update(pred_labels, labels)
-        self.test_f1.update(pred_labels, labels)
+        labels, pred_labels = convert_to_torchmetrics_format(labels, predictions, self.hparams.number_of_classes)
+        for metric in self.test_metrics_dict.values():
+            metric.update(pred_labels, labels)
 
     def on_test_epoch_end(self):
-        test_acc = self.test_acc.compute()
-        self.log("test_acc", test_acc)
-        clearml.Logger.current_logger().report_scalar("test_acc", "test_acc", test_acc, self.current_epoch)
-        self.test_acc.reset()
-
-        test_precision = self.test_precision.compute()
-        self.log("test_precision", test_precision)
-        clearml.Logger.current_logger().report_scalar("test_precision", "test_precision", test_precision, self.current_epoch)
-        self.test_precision.reset()
-
-        test_recall = self.test_recall.compute()
-        self.log("test_recall", test_recall)
-        clearml.Logger.current_logger().report_scalar("test_recall", "test_recall", test_recall, self.current_epoch)
-        self.test_recall.reset()
-
-        test_f1 = self.test_f1.compute()
-        self.log("test_f1", test_f1)
-        clearml.Logger.current_logger().report_scalar("test_f1", "test_f1", test_f1, self.current_epoch)
-        self.test_f1.reset()
+        for metric_name, metric in self.test_metrics_dict.items():
+            self.log(metric_name, metric.compute())
 
     def configure_optimizers(self):
-        # Check if there are any parameters in your model
-        print(list(self.parameters()))
         print(list(self.named_parameters()))
         return torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
