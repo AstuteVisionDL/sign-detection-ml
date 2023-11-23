@@ -4,5 +4,5 @@ defaults:
   - _self_
 
 seed: 42
-max_epochs: 1
-save_onnx: False
+max_epochs: 30
+save_onnx: True

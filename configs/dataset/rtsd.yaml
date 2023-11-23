@@ -1,6 +1,7 @@
 module:
   _target_: sign_recognition.features.datamodule.RTSDDataModule
-  batch_size: 8
+  batch_size: 16
   dsize: 640
+  num_workers: 7
 
 name: rtsd

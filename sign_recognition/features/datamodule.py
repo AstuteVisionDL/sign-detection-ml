@@ -15,13 +15,16 @@ logger = logging.getLogger(__name__)
 
 
 class RTSDDataModule(pl.LightningDataModule):
-    def __init__(self, batch_size: int = 4, dsize: int = 640, data_dir: Path | None = None) -> None:
+    def __init__(
+        self, batch_size: int = 4, dsize: int = 640, num_workers: int = 7, data_dir: Path | None = None
+    ) -> None:
         super().__init__()
         self.data_dir = data_dir
         self.rtsd_train = None
         self.rtsd_val = None
         self.rtsd_test = None
         self.batch_size = batch_size
+        self.num_workers = num_workers
         self.transform = albumentations.Compose(
             [
                 albumentations.Resize(width=dsize, height=dsize),
@@ -52,13 +55,21 @@ class RTSDDataModule(pl.LightningDataModule):
         logger.info(f"Setup data module with stage {stage} finished")
 
     def train_dataloader(self) -> DataLoader:
-        return DataLoader(self.rtsd_train, batch_size=self.batch_size, collate_fn=collate_rtsd_fn)
+        return DataLoader(
+            self.rtsd_train, batch_size=self.batch_size, num_workers=self.num_workers, persistent_workers=True, collate_fn=collate_rtsd_fn
+        )
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(self.rtsd_val, batch_size=self.batch_size, collate_fn=collate_rtsd_fn)
+        return DataLoader(
+            self.rtsd_val, batch_size=self.batch_size, num_workers=self.num_workers, persistent_workers=True,
+            collate_fn=collate_rtsd_fn
+        )
 
     def test_dataloader(self) -> DataLoader:
-        return DataLoader(self.rtsd_test, batch_size=self.batch_size, collate_fn=collate_rtsd_fn)
+        return DataLoader(
+            self.rtsd_test, batch_size=self.batch_size, num_workers=self.num_workers, persistent_workers=True,
+            collate_fn=collate_rtsd_fn
+        )
 
     @property
     def number_of_classes(self) -> int:
