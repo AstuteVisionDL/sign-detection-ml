@@ -14,7 +14,7 @@ def run_main(config: DictConfig) -> None:
     data_module = instantiate(config.dataset.module)
     data_module.prepare_data()
     model = instantiate(config.model.module)
-    trainer = pl.Trainer(max_epochs=config.max_epochs, fast_dev_run=True)
+    trainer = pl.Trainer(max_epochs=config.max_epochs)
     fit(data_module, model, trainer)
     test(data_module, trainer)
     save_model(config, model, task_name)
@@ -24,6 +24,7 @@ def initialize_task(config: DictConfig) -> str:
     pl.seed_everything(config.seed)
     task_name = f"{config.model.name}__{config.dataset.name}"
     Task.init(project_name=settings.PROJECT_NAME, task_name=task_name)
+    Task.current_task().connect(config)
     return task_name
 
 
