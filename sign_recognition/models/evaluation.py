@@ -4,16 +4,16 @@ import torch
 from torchmetrics import Accuracy, F1Score, Precision, Recall
 
 
-def build_metrics_dict(stage: Literal["train", "val", "test"], num_classes: int) -> dict:
+def build_metrics_dict(stage: Literal["train", "val", "test"], num_classes: int, device) -> dict:
     task: Literal["binary", "multiclass", "multilabel"] = "multilabel"
     metrics_dict = {
-        f"{stage}_acc": Accuracy(task=task, num_labels=num_classes),
-        f"{stage}_precision": Precision(task=task, num_labels=num_classes),
-        f"{stage}_recall": Recall(task=task, num_labels=num_classes),
-        f"{stage}_f1": F1Score(task=task, num_labels=num_classes),
-        f"{stage}_precision_weighted": Precision(task=task, num_labels=num_classes, average="weighted"),
-        f"{stage}_recall_weighted": Recall(task=task, num_labels=num_classes, average="weighted"),
-        f"{stage}_f1_weighted": F1Score(task=task, num_labels=num_classes, average="weighted"),
+        f"{stage}_acc": Accuracy(task=task, num_labels=num_classes).to(device),
+        f"{stage}_precision": Precision(task=task, num_labels=num_classes).to(device),
+        f"{stage}_recall": Recall(task=task, num_labels=num_classes).to(device),
+        f"{stage}_f1": F1Score(task=task, num_labels=num_classes).to(device),
+        f"{stage}_precision_weighted": Precision(task=task, num_labels=num_classes, average="weighted").to(device),
+        f"{stage}_recall_weighted": Recall(task=task, num_labels=num_classes, average="weighted").to(device),
+        f"{stage}_f1_weighted": F1Score(task=task, num_labels=num_classes, average="weighted").to(device),
     }
     return metrics_dict
 

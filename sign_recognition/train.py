@@ -4,6 +4,7 @@ from clearml import Task
 from hydra import main
 from hydra.utils import instantiate
 from omegaconf import DictConfig
+import torch.backends.cudnn as cudnn
 
 from sign_recognition.envs import settings
 
@@ -27,6 +28,8 @@ def run_main(config: DictConfig) -> None:
 
 def initialize_task(config: DictConfig) -> str:
     pl.seed_everything(config.seed)
+    cudnn.enabled = True
+    cudnn.benchmark = True
     task_name = f"{config.model.name}__{config.dataset.name}"
     Task.init(project_name=settings.PROJECT_NAME, task_name=task_name)
     Task.current_task().connect(config)

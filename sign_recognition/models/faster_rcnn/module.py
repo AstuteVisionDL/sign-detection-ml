@@ -13,8 +13,8 @@ class FasterRCNNModule(pl.LightningModule):
         print(self.hparams)
         self.model = build_model(number_of_classes)
 
-        self.val_metrics_dict = build_metrics_dict("val", number_of_classes)
-        self.test_metrics_dict = build_metrics_dict("test", number_of_classes)
+        self.val_metrics_dict = build_metrics_dict("val", number_of_classes, self.device)
+        self.test_metrics_dict = build_metrics_dict("test", number_of_classes, self.device)
 
     def forward(self, images: torch.Tensor) -> dict:
         """
@@ -44,6 +44,7 @@ class FasterRCNNModule(pl.LightningModule):
         predictions = self.model(images)
         labels, pred_labels = convert_to_torchmetrics_format(labels, predictions, self.hparams.number_of_classes)
         for metric in self.val_metrics_dict.values():
+            metric.to(self.device)
             metric.update(pred_labels, labels)
 
     def on_validation_epoch_end(self) -> None:
@@ -60,6 +61,7 @@ class FasterRCNNModule(pl.LightningModule):
         predictions = self.model(images)
         labels, pred_labels = convert_to_torchmetrics_format(labels, predictions, self.hparams.number_of_classes)
         for metric in self.test_metrics_dict.values():
+            metric.to(self.device)
             metric.update(pred_labels, labels)
 
     def on_test_epoch_end(self) -> None:

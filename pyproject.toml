@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Project with shared code for ML"
 authors = ["AstuteVision"]
 readme = "README.md"
-packages = [{include = "sign_detection_ml"}]
+packages = [{include = "sign_recognition"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
