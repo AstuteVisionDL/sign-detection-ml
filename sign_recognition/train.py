@@ -13,7 +13,12 @@ def run_main(config: DictConfig) -> None:
     task_name = initialize_task(config)
     data_module = instantiate(config.dataset.module)
     data_module.prepare_data()
+    data_module.setup("fit")
+
+    number_of_classes = data_module.number_of_classes
+    config.model.module.number_of_classes = number_of_classes + 1
     model = instantiate(config.model.module)
+
     trainer = pl.Trainer(max_epochs=config.max_epochs)
     fit(data_module, model, trainer)
     test(data_module, trainer)
@@ -29,7 +34,6 @@ def initialize_task(config: DictConfig) -> str:
 
 
 def fit(data_module: pl.LightningDataModule, model: pl.LightningModule, trainer: pl.Trainer) -> None:
-    data_module.setup("fit")
     train_loader = data_module.train_dataloader()
     val_loader = data_module.val_dataloader()
     trainer.fit(model, train_loader, val_loader)
