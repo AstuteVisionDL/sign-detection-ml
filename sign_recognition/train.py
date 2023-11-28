@@ -16,8 +16,7 @@ def run_main(config: DictConfig) -> None:
     data_module.prepare_data()
     data_module.setup("fit")
 
-    number_of_classes = data_module.number_of_classes
-    config.model.module.number_of_classes = number_of_classes + 1
+    config.model.module.number_of_classes = data_module.number_of_classes
     model = instantiate(config.model.module)
 
     trainer = pl.Trainer(max_epochs=config.max_epochs)

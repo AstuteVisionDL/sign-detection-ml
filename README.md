@@ -5,13 +5,28 @@ Project to store shared code and notebooks with experiment
 
 # How to setup
 
+To run training you have to download data by one of the following ways:
+
+## ClearML (recommended)
 1) Run clearml init
 ```bash
 clearml-init
 ```
-2) Get ClearML credentials. Open the ClearML Web UI in a browser. 
+2) Get ClearML credentials. Open the ClearML Web UI in a browser.
 On the [SETTINGS > WORKSPACE](https://app.clear.ml/settings/workspace-configuration) page, click Create new credentials.
+
 3) Enter the credentials in the terminal
+
+After this data download will be done automatically
+
+## Kaggle API 
+Use the download and processing script from data/main.py. Run it with python and you will get data into data/raw folder (original raw version of data) and in 
+the data/processed folder (processed version of data with train/test split and filtered labels)
+```bash
+python sign_recognition/data/main.py
+```
+*Note: You have to provide kaggle api credentials*
+*Note1: You can change the config via providing environment variables (see sign_recognition/envs.py for details)*
 
 # How to run
 
