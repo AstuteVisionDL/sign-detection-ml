@@ -1,5 +1,5 @@
 module:
-  _target_: sign_recognition.models.faster_rcnn.module.FasterRCNNModule
+  _target_: models.faster_rcnn.module.FasterRCNNModule
   number_of_classes: 155
   learning_rate: 1e-3
 
