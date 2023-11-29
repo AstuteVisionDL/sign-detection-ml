@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     RAW_DATA_PATH: Path = PROJECT_DIR / "data/raw"
     # Default processed data path (data after preprocessing)
     PROCESSED_DATA_PATH: Path = PROJECT_DIR / "data/processed"
+    PROCESSED_RTSD_DATASET_PATH: Path = PROJECT_DIR / "data/processed/rtsd-dataset"
     # Flag for uploading processed data to ClearML (if False, processed data will be saved only locally)
     UPLOAD_TO_CLEARML: bool = False
 
