@@ -1,16 +1,14 @@
 import logging
 from pathlib import Path
 
-import albumentations
 import pytorch_lightning as pl
 import torch
 import tqdm
-from albumentations.pytorch import ToTensorV2
 from clearml import Dataset
-from torch.utils.data import DataLoader, random_split, Subset
+from torch.utils.data import DataLoader, Subset, random_split
 
 from sign_recognition.envs import settings
-from sign_recognition.features.augmentations import Compose, PILToTensor, RandomHorizontalFlip, Normalize, Resize
+from sign_recognition.features.augmentations import Compose, Normalize, PILToTensor, RandomHorizontalFlip, Resize
 from sign_recognition.features.dataset import RTSDDataset, collate_fn
 
 logger = logging.getLogger(__name__)
@@ -18,7 +16,11 @@ logger = logging.getLogger(__name__)
 
 class RTSDDataModule(pl.LightningDataModule):
     def __init__(
-        self, batch_size: int = 4, dsize: int = 640, data_dir: Path | None = settings.PROCESSED_DATA_PATH / "rtsd-dataset", seed: int = 42
+        self,
+        batch_size: int = 4,
+        dsize: int = 640,
+        data_dir: Path | None = settings.PROCESSED_DATA_PATH / "rtsd-dataset",
+        seed: int = 42,
     ) -> None:
         super().__init__()
         self.data_dir = data_dir
@@ -29,9 +31,12 @@ class RTSDDataModule(pl.LightningDataModule):
         self.train_transforms = Compose(
             [
                 PILToTensor(),
-                Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225),),
+                Normalize(
+                    mean=(0.485, 0.456, 0.406),
+                    std=(0.229, 0.224, 0.225),
+                ),
                 Resize(dsize),
-                RandomHorizontalFlip(0.5)
+                RandomHorizontalFlip(0.5),
             ]
         )
         self.seed = seed
@@ -56,38 +61,26 @@ class RTSDDataModule(pl.LightningDataModule):
                 rtsd_full, [train_size, val_size], generator=torch.Generator().manual_seed(self.seed)
             )
         if stage == "test":
-            test_transforms = Compose([
-                PILToTensor(),
-                Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-                Resize(640),
-            ])
+            test_transforms = Compose(
+                [
+                    PILToTensor(),
+                    Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+                    Resize(640),
+                ]
+            )
             self.rtsd_test = RTSDDataset(self.data_dir, train=False, transforms=test_transforms)
         logger.info(f"Setup data module with stage {stage} finished")
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
-            self.rtsd_train,
-            batch_size=self.batch_size,
-            num_workers=0,
-            collate_fn=collate_fn,
-            shuffle=True
+            self.rtsd_train, batch_size=self.batch_size, num_workers=0, collate_fn=collate_fn, shuffle=True
         )
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(
-            self.rtsd_val,
-            batch_size=self.batch_size,
-            num_workers=0,
-            collate_fn=collate_fn
-        )
+        return DataLoader(self.rtsd_val, batch_size=self.batch_size, num_workers=0, collate_fn=collate_fn)
 
     def test_dataloader(self) -> DataLoader:
-        return DataLoader(
-            self.rtsd_test,
-            batch_size=self.batch_size,
-            num_workers=0,
-            collate_fn=collate_fn
-        )
+        return DataLoader(self.rtsd_test, batch_size=self.batch_size, num_workers=0, collate_fn=collate_fn)
 
     @property
     def number_of_classes(self) -> int:

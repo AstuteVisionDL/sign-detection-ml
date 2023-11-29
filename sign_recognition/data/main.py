@@ -1,8 +1,12 @@
-from sign_recognition.data.download import download_dataset, upload_dataset_to_clearml
-from sign_recognition.data.process import to_fifty_one_dataset, find_most_common_classes, export_to_yolov5, \
-    filter_classes
 from logging import getLogger
 
+from sign_recognition.data.download import download_dataset, upload_dataset_to_clearml
+from sign_recognition.data.process import (
+    export_to_yolov5,
+    filter_classes,
+    find_most_common_classes,
+    to_fifty_one_dataset,
+)
 from sign_recognition.envs import settings
 
 logger = getLogger(__name__)
@@ -19,5 +23,5 @@ def create_processed_dataset(upload_to_clearml: bool = settings.UPLOAD_TO_CLEARM
         upload_dataset_to_clearml(processed_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     create_processed_dataset()

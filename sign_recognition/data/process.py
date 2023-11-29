@@ -1,15 +1,13 @@
 import os
+import shutil
+from logging import getLogger
 from pathlib import Path
 from typing import Literal
-from logging import getLogger
 
 import fiftyone as fo
 from fiftyone import ViewField as F
 
 from sign_recognition.envs import settings
-
-import shutil
-
 
 logger = getLogger(__name__)
 
@@ -43,8 +41,7 @@ def rename_frames_dir(raw_dataset_path: Path):
     os.rename(raw_dataset_path / "rtsd-frames", raw_dataset_path / "data")
 
 
-def rename_annotation_json(raw_dataset_path: Path,
-                           subset: Literal['train', 'val'] = "train"):
+def rename_annotation_json(raw_dataset_path: Path, subset: Literal["train", "val"] = "train"):
     if os.path.exists(raw_dataset_path / "labels.json"):
         os.remove(raw_dataset_path / "labels.json")
     shutil.copy(raw_dataset_path / f"{subset}_anno.json", raw_dataset_path / "labels.json")
@@ -64,9 +61,7 @@ def find_most_common_classes(dataset):
 
 
 def filter_classes(dataset, include_classes):
-    filtered_view = dataset.filter_labels(
-        "detections", F("label").is_in(include_classes)
-    )
+    filtered_view = dataset.filter_labels("detections", F("label").is_in(include_classes))
     return filtered_view
 
 

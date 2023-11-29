@@ -1,10 +1,8 @@
-import json
 from logging import getLogger
 from pathlib import Path
 
 from clearml import Dataset
 from opendatasets import download
-import pandas as pd
 
 from sign_recognition.envs import settings
 
@@ -16,8 +14,7 @@ def download_dataset(output_path: Path = settings.RAW_DATA_PATH, force_download=
     # here are preprocessing scripts for raw data (merging datasets, etc)
     # for training you should use already processed data from ClearML
     logger.info("Downloading datasets...")
-    download("https://www.kaggle.com/datasets/watchman/rtsd-dataset", data_dir=output_path,
-             force=force_download)
+    download("https://www.kaggle.com/datasets/watchman/rtsd-dataset", data_dir=output_path, force=force_download)
     logger.info("Dataset download complete.")
     output_path = output_path / "rtsd-dataset"
     return output_path

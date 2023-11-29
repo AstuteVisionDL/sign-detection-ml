@@ -1,10 +1,14 @@
-from typing import Dict, List, Optional, Tuple, Union
-
+"""
+Augmentations for object detection.
+TODO: Use albumentations or torchvision transforms v2.
+References: most functions are taken from torchvision references.
+(https://github.com/pytorch/vision/blob/main/references/detection/transforms.py)
+"""
 import torch
-import torchvision
-from torch import nn, Tensor
-from torchvision import ops
-from torchvision.transforms import functional as F, InterpolationMode, transforms as T
+from torch import Tensor, nn
+from torchvision.transforms import InterpolationMode
+from torchvision.transforms import functional as F
+from torchvision.transforms import transforms as T
 
 
 def _flip_coco_person_keypoints(kps, width):
@@ -19,8 +23,8 @@ def _flip_coco_person_keypoints(kps, width):
 
 class PILToTensor(nn.Module):
     def forward(
-        self, image: Tensor, target: Optional[Dict[str, Tensor]] = None
-    ) -> Tuple[Tensor, Optional[Dict[str, Tensor]]]:
+        self, image: Tensor, target: dict[str, Tensor] | None = None
+    ) -> tuple[Tensor, dict[str, Tensor] | None]:
         image = F.pil_to_tensor(image)
         return image, target
 
@@ -28,8 +32,8 @@ class PILToTensor(nn.Module):
 class Normalize(nn.Module):
     def __init__(
         self,
-        mean: Union[List[float], Tuple[float, ...], Tensor],
-        std: Union[List[float], Tuple[float, ...], Tensor],
+        mean: list[float] | tuple[float, ...] | Tensor,
+        std: list[float] | tuple[float, ...] | Tensor,
         inplace: bool = False,
     ) -> None:
         super().__init__()
@@ -38,8 +42,8 @@ class Normalize(nn.Module):
         self.inplace = inplace
 
     def forward(
-        self, image: Tensor, target: Optional[Dict[str, Tensor]] = None
-    ) -> Tuple[Tensor, Optional[Dict[str, Tensor]]]:
+        self, image: Tensor, target: dict[str, Tensor] | None = None
+    ) -> tuple[Tensor, dict[str, Tensor] | None]:
         image = image.float()
         image = F.normalize(image, self.mean, self.std, self.inplace)
         return image, target
@@ -48,7 +52,7 @@ class Normalize(nn.Module):
 class Resize(nn.Module):
     def __init__(
         self,
-        size: Union[int, Tuple[int, int]],
+        size: int | tuple[int, int],
         interpolation: InterpolationMode = InterpolationMode.BILINEAR,
     ) -> None:
         super().__init__()
@@ -56,8 +60,8 @@ class Resize(nn.Module):
         self.interpolation = interpolation
 
     def forward(
-        self, image: Tensor, target: Optional[Dict[str, Tensor]] = None
-    ) -> Tuple[Tensor, Optional[Dict[str, Tensor]]]:
+        self, image: Tensor, target: dict[str, Tensor] | None = None
+    ) -> tuple[Tensor, dict[str, Tensor] | None]:
         image = F.resize(image, [self.size, self.size], self.interpolation)
         if target is not None:
             height, width = F.get_image_size(image)
@@ -85,8 +89,8 @@ class Compose:
 
 class RandomHorizontalFlip(T.RandomHorizontalFlip):
     def forward(
-        self, image: Tensor, target: Optional[Dict[str, Tensor]] = None
-    ) -> Tuple[Tensor, Optional[Dict[str, Tensor]]]:
+        self, image: Tensor, target: dict[str, Tensor] | None = None
+    ) -> tuple[Tensor, dict[str, Tensor] | None]:
         if torch.rand(1) < self.p:
             image = F.hflip(image)
             if target is not None:

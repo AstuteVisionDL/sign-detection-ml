@@ -1,10 +1,10 @@
 import pytorch_lightning as pl
 import torch
+import torch.backends.cudnn as cudnn
 from clearml import Task
 from hydra import main
 from hydra.utils import instantiate
 from omegaconf import DictConfig
-import torch.backends.cudnn as cudnn
 
 from sign_recognition.envs import settings
 

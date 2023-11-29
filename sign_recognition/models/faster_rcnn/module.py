@@ -53,9 +53,10 @@ class FasterRCNNModule(pl.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
 
 
-if __name__ == '__main__':
-    from sign_recognition.features.datamodule import RTSDDataModule
+if __name__ == "__main__":
     from sign_recognition.envs import settings
+    from sign_recognition.features.datamodule import RTSDDataModule
+
     data_dir = settings.PROCESSED_DATA_PATH / "rtsd-dataset"
     data_module = RTSDDataModule(data_dir=data_dir, activate_clearml=False)
     data_module.prepare_data()
