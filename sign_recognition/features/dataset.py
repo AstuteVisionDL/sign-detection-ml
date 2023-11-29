@@ -5,7 +5,7 @@ import fiftyone.utils.coco as fouc
 import torch
 from PIL import Image
 
-from augmentations import Compose, PILToTensor
+from .augmentations import Compose, PILToTensor
 
 
 def collate_fn(batch):

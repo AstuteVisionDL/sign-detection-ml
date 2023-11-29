@@ -7,8 +7,8 @@ import tqdm
 from clearml import Dataset
 from torch.utils.data import DataLoader, Subset, random_split
 
-from augmentations import Compose, Normalize, PILToTensor, RandomHorizontalFlip, Resize
-from dataset import RTSDDataset, collate_fn
+from .augmentations import Compose, Normalize, PILToTensor, RandomHorizontalFlip, Resize
+from .dataset import RTSDDataset, collate_fn
 
 logger = logging.getLogger(__name__)
 

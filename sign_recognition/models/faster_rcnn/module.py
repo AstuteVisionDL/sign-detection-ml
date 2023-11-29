@@ -2,7 +2,7 @@ import clearml
 import pytorch_lightning as pl
 import torch
 
-from model import build_model
+from .model import build_model
 
 
 class FasterRCNNModule(pl.LightningModule):
