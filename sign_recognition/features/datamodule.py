@@ -21,6 +21,7 @@ class RTSDDataModule(pl.LightningDataModule):
         dsize: int = 640,
         data_dir: Path | None = settings.PROCESSED_DATA_PATH / "rtsd-dataset",
         seed: int = 42,
+        num_workers: int = 0,
     ) -> None:
         super().__init__()
         self.data_dir = data_dir
@@ -40,6 +41,7 @@ class RTSDDataModule(pl.LightningDataModule):
             ]
         )
         self.seed = seed
+        self.num_workers = num_workers
 
     def prepare_data(self) -> None:
         if self.data_dir is None:
@@ -73,14 +75,14 @@ class RTSDDataModule(pl.LightningDataModule):
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
-            self.rtsd_train, batch_size=self.batch_size, num_workers=0, collate_fn=collate_fn, shuffle=True
+            self.rtsd_train, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=collate_fn, shuffle=True
         )
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(self.rtsd_val, batch_size=self.batch_size, num_workers=0, collate_fn=collate_fn)
+        return DataLoader(self.rtsd_val, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=collate_fn)
 
     def test_dataloader(self) -> DataLoader:
-        return DataLoader(self.rtsd_test, batch_size=self.batch_size, num_workers=0, collate_fn=collate_fn)
+        return DataLoader(self.rtsd_test, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=collate_fn)
 
     @property
     def number_of_classes(self) -> int:
