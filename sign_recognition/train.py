@@ -6,17 +6,20 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig
 
 from envs import settings
+from features.datamodule import RTSDDataModule
+from models.faster_rcnn.module import FasterRCNNModule
 
 
 @main(config_path=f"{settings.PROJECT_DIR}/configs", config_name="default", version_base="1.2")
 def run_main(config: DictConfig) -> None:
     task_name = initialize_task(config)
-    data_module = instantiate(config.dataset.module)
+    data_module = RTSDDataModule(num_workers=config.dataset.module.num_workers,
+                                 batch_size=config.dataset.module.batch_size)
     data_module.prepare_data()
     data_module.setup("fit")
 
     config.model.module.number_of_classes = data_module.number_of_classes
-    model = instantiate(config.model.module)
+    model = FasterRCNNModule(number_of_classes=config.model.module.number_of_classes)
 
     trainer = pl.Trainer(max_epochs=config.max_epochs)
     fit(data_module, model, trainer)
