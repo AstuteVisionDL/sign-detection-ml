@@ -34,7 +34,8 @@ def train_yolo(config: DictConfig):
     model.save(settings.MODELS_WEIGHTS_PATH / "yolo.pt")
     print(model.val())
     print(model.benchmark())
-    model.export(format="onnx", f=settings.MODELS_WEIGHTS_PATH / "yolo.onnx")
+    if config.save_onnx:
+        model.export(format="onnx", f=settings.MODELS_WEIGHTS_PATH / "yolo.onnx")
 
 
 if __name__ == '__main__':
