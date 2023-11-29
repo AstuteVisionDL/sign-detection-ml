@@ -1,10 +1,10 @@
 import pytorch_lightning as pl
 import torch
+import torch.backends.cudnn as cudnn
 from clearml import Task
 from hydra import main
 from hydra.utils import instantiate
 from omegaconf import DictConfig
-import torch.backends.cudnn as cudnn
 
 from sign_recognition.envs import settings
 
@@ -16,8 +16,7 @@ def run_main(config: DictConfig) -> None:
     data_module.prepare_data()
     data_module.setup("fit")
 
-    number_of_classes = data_module.number_of_classes
-    config.model.module.number_of_classes = number_of_classes + 1
+    config.model.module.number_of_classes = data_module.number_of_classes
     model = instantiate(config.model.module)
 
     trainer = pl.Trainer(max_epochs=config.max_epochs)
