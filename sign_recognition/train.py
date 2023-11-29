@@ -6,7 +6,7 @@ from hydra import main
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 
-from sign_recognition.envs import settings
+from envs import settings
 
 
 @main(config_path=f"{settings.PROJECT_DIR}/configs", config_name="default", version_base="1.2")
