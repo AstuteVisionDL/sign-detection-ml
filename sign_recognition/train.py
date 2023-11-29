@@ -1,7 +1,6 @@
 import pytorch_lightning as pl
 import torch
 import torch.backends.cudnn as cudnn
-from clearml import Task
 from hydra import main
 from hydra.utils import instantiate
 from omegaconf import DictConfig
@@ -30,8 +29,6 @@ def initialize_task(config: DictConfig) -> str:
     cudnn.enabled = True
     cudnn.benchmark = True
     task_name = f"{config.model.name}__{config.dataset.name}"
-    Task.init(project_name=settings.PROJECT_NAME, task_name=task_name)
-    Task.current_task().connect(config)
     return task_name
 
 
@@ -55,7 +52,6 @@ def save_model(config: DictConfig, model: pl.LightningModule, task_name: str) ->
             input_sample=torch.rand(1, 3, dsize, dsize),
             export_params=True,
         )
-        Task.current_task().upload_artifact(f"{task_name}.onnx", artifact_object=f"{task_name}.onnx")
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ from sign_recognition.models.faster_rcnn.model import build_model
 
 
 class FasterRCNNModule(pl.LightningModule):
-    def __init__(self, number_of_classes: int, learning_rate: float = 1e-3, activate_clearml: bool = True) -> None:
+    def __init__(self, number_of_classes: int, learning_rate: float = 1e-3, activate_clearml: bool = False) -> None:
         super().__init__()
         self.save_hyperparameters("number_of_classes", "learning_rate")
         print(self.hparams)
