@@ -2,7 +2,7 @@ import clearml
 import pytorch_lightning as pl
 import torch
 
-from sign_recognition.models.faster_rcnn.model import build_model
+from model import build_model
 
 
 class FasterRCNNModule(pl.LightningModule):

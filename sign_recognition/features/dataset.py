@@ -5,8 +5,7 @@ import fiftyone.utils.coco as fouc
 import torch
 from PIL import Image
 
-from sign_recognition.envs import settings
-from sign_recognition.features.augmentations import Compose, PILToTensor
+from augmentations import Compose, PILToTensor
 
 
 def collate_fn(batch):
@@ -90,6 +89,7 @@ class RTSDDataset(torch.utils.data.Dataset):
 
 
 if __name__ == "__main__":
+    from sign_recognition.envs import settings
     processed_data_dir = settings.PROCESSED_DATA_PATH / "rtsd-dataset"
 
     test_transforms = Compose([PILToTensor()])

@@ -13,8 +13,9 @@ from models.faster_rcnn.module import FasterRCNNModule
 @main(config_path=f"{settings.PROJECT_DIR}/configs", config_name="default", version_base="1.2")
 def run_main(config: DictConfig) -> None:
     task_name = initialize_task(config)
-    data_module = RTSDDataModule(num_workers=config.dataset.module.num_workers,
-                                 batch_size=config.dataset.module.batch_size)
+    data_module = RTSDDataModule(num_workers=0,
+                                 batch_size=config.dataset.module.batch_size,
+                                 data_dir=settings.PROCESSED_RTSD_DATASET_PATH)
     data_module.prepare_data()
     data_module.setup("fit")
 

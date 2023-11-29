@@ -7,9 +7,8 @@ import tqdm
 from clearml import Dataset
 from torch.utils.data import DataLoader, Subset, random_split
 
-from sign_recognition.envs import settings
-from sign_recognition.features.augmentations import Compose, Normalize, PILToTensor, RandomHorizontalFlip, Resize
-from sign_recognition.features.dataset import RTSDDataset, collate_fn
+from augmentations import Compose, Normalize, PILToTensor, RandomHorizontalFlip, Resize
+from dataset import RTSDDataset, collate_fn
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ class RTSDDataModule(pl.LightningDataModule):
         self,
         batch_size: int = 4,
         dsize: int = 640,
-        data_dir: Path | None = settings.PROCESSED_DATA_PATH / "rtsd-dataset",
+        data_dir: Path | None = None,
         seed: int = 42,
         num_workers: int = 0,
     ) -> None:
@@ -95,6 +94,7 @@ class RTSDDataModule(pl.LightningDataModule):
 
 
 if __name__ == "__main__":
+    from sign_recognition.envs import settings
     data_module = RTSDDataModule(data_dir=settings.PROCESSED_DATA_PATH / "rtsd-dataset")
     data_module.prepare_data()
     data_module.setup("test")
