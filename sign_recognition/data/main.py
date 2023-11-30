@@ -18,7 +18,7 @@ def create_processed_dataset(upload_to_clearml: bool = settings.UPLOAD_TO_CLEARM
     dataset = to_fifty_one_dataset(raw_path)
     classes = find_most_common_classes(dataset)
     dataset = filter_classes(dataset, classes)
-    processed_path = export_to_yolov5(classes, dataset)
+    processed_path = export_to_yolov5(classes, dataset, output_path="/Users/arkadiysotnikov/PycharmProjects/sign-detection-ml/data/interim/rtsd-dataset")
     if upload_to_clearml:
         upload_dataset_to_clearml(processed_path)
 

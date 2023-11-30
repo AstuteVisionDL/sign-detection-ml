@@ -76,7 +76,7 @@ def export_to_yolov5(classes, dataset, output_path=settings.PROCESSED_DATA_PATH 
     # export view to yolov5 format
     train_view.export(
         export_dir=output_path,
-        dataset_type=fo.types.YOLOv5Dataset,
+        dataset_type=fo.types.COCODetectionDataset,
         label_field="detections",
         classes=classes,
         overwrite=True,
@@ -84,7 +84,7 @@ def export_to_yolov5(classes, dataset, output_path=settings.PROCESSED_DATA_PATH 
     )
     val_view.export(
         export_dir=output_path,
-        dataset_type=fo.types.YOLOv5Dataset,
+        dataset_type=fo.types.COCODetectionDataset,
         label_field="detections",
         classes=classes,
         split="val",
